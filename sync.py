@@ -81,6 +81,16 @@ def pagina(url):
         return r.read().decode("utf-8", "ignore")
 
 
+def em_breve(vid):
+    """A live ainda não começou? Agendada tem "isUpcoming":true, ou isLiveNow false sem endTimestamp (sala de espera).
+    Sem rede: False, publica como antes em vez de derrubar a execução."""
+    try:
+        p = pagina(f"https://www.youtube.com/watch?v={vid}")
+    except (urllib.error.URLError, OSError):
+        return False
+    return '"isUpcoming":true' in p or ('"isLiveNow":false' in p and '"endTimestamp"' not in p)
+
+
 def descobrir_canal(handle):
     """Id do canal (UC…) a partir do @handle: vem do <link rel="canonical"> da página do canal."""
     m = CANAL_ID.search(pagina(f"https://www.youtube.com/{handle}"))
@@ -90,7 +100,7 @@ def descobrir_canal(handle):
 
 
 def rss(aba, channel_id):
-    # ponytail: o RSS não diz se a live ainda é agendada; em_breve() confere na página antes de publicar.
+    # O RSS não diz se a live ainda é agendada; em_breve() confere na página antes de publicar.
     playlist = {"videos": "UULF", "streams": "UULV"}[aba] + channel_id[2:]
     try:
         with urllib.request.urlopen(FEED.format(playlist), timeout=30) as r:
@@ -269,6 +279,9 @@ def main():
         # ponytail: dedupe por título também pega live x vídeo editado; o custo é "PARTE 01/02" com o mesmo título virar uma só.
         if not p or v["timestamp"] < desde.timestamp() or v["id"] in ids_ok or norm(p[0]) in titulos_ok:
             continue
+        if v["aba"] == "streams" and em_breve(v["id"]):  # só vídeo novo chega aqui: uma página a mais por vídeo
+            print(f"AGENDADA (espera o culto) {p[0]}")
+            continue
         titulos_ok.add(norm(p[0]))
         novos.append((v,) + p)
     novos = sorted(novos, key=lambda n: n[0]["timestamp"])[:a.limite]  # mais antigo primeiro, o mais recente por último
@@ -278,8 +291,8 @@ def main():
     for i, (v, titulo, autor, serie) in enumerate(novos):
         vid = v["id"]
         push = i == len(novos) - 1  # só 1 push por execução, da Palavra mais recente
-        quando = datetime.fromtimestamp(v["timestamp"], FUSO).strftime("%Y-%m-%dT%H:%M")
-        linha = f"{quando}  {titulo} — {autor}" + (f"  [série: {serie}]" if serie else "") + ("  [push]" if push else "")
+        quando =datetime.fromtimestamp(v["timestamp"], FUSO).strftime("%Y-%m-%dT%H:%M")
+        linha =f"{quando}  {titulo} — {autor}" + (f"  [série: {serie}]" if serie else "") + ("  [push]" if push else "")
         if a.dry_run:
             print(f"{linha}  https://youtu.be/{vid}")
             continue
