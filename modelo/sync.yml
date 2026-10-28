@@ -1,0 +1,32 @@
+name: Publicar pregações na InChurch
+
+on:
+  schedule:
+    - cron: "17 11 * * *"  # 8h17 de Brasília (o GitHub pode atrasar horas)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Só mostrar o que seria publicado"
+        type: boolean
+        default: false
+
+concurrency: sync  # duas execuções ao mesmo tempo publicariam a mesma Palavra duas vezes
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: igreja
+      - uses: actions/checkout@v4
+        with:
+          repository: Lacerdamix/inchurch-sync
+          ref: v1
+          path: codigo
+      - run: python3 sync.py --config ../igreja/igreja.json ${{ inputs.dry_run && '--dry-run' || '' }}
+        working-directory: codigo
+        env:
+          INCHURCH_EMAIL: ${{ secrets.INCHURCH_EMAIL }}
+          INCHURCH_PASSWORD: ${{ secrets.INCHURCH_PASSWORD }}

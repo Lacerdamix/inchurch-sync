@@ -1,0 +1,31 @@
+name: Push quando a live começar
+
+on:
+#CRONS#
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Só mostrar o que faria"
+        type: boolean
+        default: false
+
+concurrency: live  # duas execuções ao mesmo tempo mandariam o push duas vezes
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: igreja
+      - uses: actions/checkout@v4
+        with:
+          repository: Lacerdamix/inchurch-sync
+          ref: v1
+          path: codigo
+      - run: python3 live.py --config ../igreja/igreja.json ${{ inputs.dry_run && '--dry-run' || '' }}
+        working-directory: codigo
+        env:
+          INCHURCH_EMAIL: ${{ secrets.INCHURCH_EMAIL }}
+          INCHURCH_PASSWORD: ${{ secrets.INCHURCH_PASSWORD }}
