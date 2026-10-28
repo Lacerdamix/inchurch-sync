@@ -65,7 +65,7 @@ A instalação preenche tudo. Para referência, veja [`igreja.exemplo.json`](igr
 | `youtube_handle`, `youtube_channel_id` | O canal do YouTube (`@SuaIgreja` e o id que começa com `UC`). |
 | `desde` | Data a partir da qual as pregações são publicadas (`AAAA-MM-DD`). |
 | `destaques` | Quantas Palavras recentes ficam em destaque no app. `0` não mexe. |
-| `titulo` | Como os títulos são escritos: `separador` (ex. `\|`) e a ordem dos `campos` (`titulo`, `pregador`, `serie`). |
+| `titulo` | Como os títulos são escritos: `separador` (ex. `\|`) e a ordem dos `campos` (`titulo` sempre; `pregador` e `serie` se houver). A parte `serie` vira a série da Palavra. |
 | `prefixos_pregador` | Como vocês escrevem quem prega: `PR`, `PRA`, `PASTOR`, `BISPO`... |
 | `cultos_genericos` | Nomes de live ainda não renomeada (`CULTO`, `DOMINGO`...). Essas não são publicadas. |
 | `series_por_prefixo` | Opcional. Ex.: `{"CONF": "CONFERÊNCIA"}` faz `\| CONF. JOVENS 2026` virar a série "CONFERÊNCIA JOVENS 2026". |

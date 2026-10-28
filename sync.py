@@ -45,9 +45,11 @@ def parse(titulo, aba, cfg):
     """(titulo, autor, serie) se for publicável, senão None. O formato do título vem de cfg["titulo"]."""
     t = cfg["titulo"]
     partes = [" ".join(p.split()) for p in titulo.split(t["separador"])]
-    campos = dict(zip(t["campos"], partes))
+    # Título sem separador é só título (senão, com "pregador" primeiro na ordem, o título viraria o autor).
+    campos = dict(zip(t["campos"], partes)) if len(partes) > 1 else {"titulo": partes[0]}
     nome = campos.get("titulo") or partes[0]
-    if any(norm(nome).startswith(g) for g in map(norm, cfg["cultos_genericos"])):
+    genericos = [g for g in map(norm, cfg["cultos_genericos"]) if g]
+    if any(re.match(rf"{re.escape(g)}\b", norm(nome)) for g in genericos):
         return None  # nome de culto no início = live ainda não renomeada
     pregador = campos.get("pregador", "")
     tem_pregador = any(re.match(rf"{re.escape(norm(p))}(\s|$)", norm(pregador)) for p in cfg["prefixos_pregador"])
@@ -57,10 +59,11 @@ def parse(titulo, aba, cfg):
                   if re.match(rf"{re.escape(prefixo)}\b", p, re.I)), None)
         if m:
             serie = f"{nome_serie} {m.group(1)}".upper()
-    # Toda live é culto; na aba Vídeos tem música e podcast, então lá só entra pregador ou série.
+    # Toda live é culto; na aba Vídeos tem música e podcast, então lá só entra pregador ou série por prefixo
+    # (o campo "serie" do título dá o nome da série, mas sozinho não libera: música também tem 3 partes).
     if aba == "streams" or tem_pregador or serie:
         autor = re.sub(r"^(PRA?|AP)\.(?=\S)", r"\1. ", pregador, flags=re.I) if pregador else cfg["nome"]
-        return nome[:120], autor, serie
+        return nome[:120], autor, serie or campos.get("serie") or None
     return None
 
 
@@ -102,13 +105,8 @@ def descobrir_canal(handle):
 def rss(aba, channel_id):
     # O RSS não diz se a live ainda é agendada; em_breve() confere na página antes de publicar.
     playlist = {"videos": "UULF", "streams": "UULV"}[aba] + channel_id[2:]
-    try:
-        with urllib.request.urlopen(FEED.format(playlist), timeout=30) as r:
-            entradas = ET.parse(r).getroot().findall("a:entry", NS)
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            sys.exit(f"O YouTube não achou o canal {channel_id} (aba {aba}). Confira youtube_channel_id no igreja.json.")
-        raise
+    with urllib.request.urlopen(FEED.format(playlist), timeout=30) as r:
+        entradas = ET.parse(r).getroot().findall("a:entry", NS)
     return [{"id": e.findtext("yt:videoId", namespaces=NS), "title": e.findtext("a:title", namespaces=NS),
              "timestamp": datetime.fromisoformat(e.findtext("a:published", namespaces=NS)).timestamp(),
              "description": e.findtext("m:group/m:description", namespaces=NS), "aba": aba} for e in entradas]
@@ -116,7 +114,20 @@ def rss(aba, channel_id):
 
 def listar(channel_id):
     # Aba Vídeos primeiro: quando a mesma pregação existe como live e como vídeo editado, fica o editado.
-    return rss("videos", channel_id) + rss("streams", channel_id)
+    # O feed de uma aba às vezes some (404) e volta sozinho, e canal sem nenhuma live não tem o da aba Ao vivo:
+    # segue com a outra. As duas fora ao mesmo tempo quase sempre é id de canal errado.
+    vids, fora = [], []
+    for aba in ("videos", "streams"):
+        try:
+            vids += rss(aba, channel_id)
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
+            fora.append(aba)
+            print(f"Aba {'Vídeos' if aba == 'videos' else 'Ao vivo'} do YouTube indisponível agora (404); fica para a próxima")
+    if len(fora) == 2:
+        sys.exit(f"O YouTube não achou o canal {channel_id}. Confira youtube_channel_id no igreja.json.")
+    return vids
 
 
 def capa(vid):
@@ -279,7 +290,7 @@ def main():
         # ponytail: dedupe por título também pega live x vídeo editado; o custo é "PARTE 01/02" com o mesmo título virar uma só.
         if not p or v["timestamp"] < desde.timestamp() or v["id"] in ids_ok or norm(p[0]) in titulos_ok:
             continue
-        if v["aba"] == "streams" and em_breve(v["id"]):  # só vídeo novo chega aqui: uma página a mais por vídeo
+        if em_breve(v["id"]):  # live ou estreia agendada; só vídeo novo chega aqui: uma página a mais por vídeo
             print(f"AGENDADA (espera o culto) {p[0]}")
             continue
         titulos_ok.add(norm(p[0]))

@@ -13,6 +13,7 @@ DEFAULTS = {
     "live": {"canal_inchurch": None, "janelas": []},
 }
 HORA = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+CAMPOS = {"titulo", "pregador", "serie"}
 
 
 def erro(campo, problema):
@@ -20,14 +21,31 @@ def erro(campo, problema):
 
 
 def carregar_igreja(path):
-    with open(path, encoding="utf-8") as f:
-        cfg = json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except OSError as e:
+        erro("arquivo", f"não consegui abrir {path} ({e.strerror})")
+    except json.JSONDecodeError as e:
+        erro("arquivo", f"texto inválido na linha {e.lineno}, coluna {e.colno} (vírgula ou aspas sobrando?)")
+    if not isinstance(cfg, dict):
+        erro("arquivo", "deve ser um objeto entre { }")
     for campo in ("nome", "youtube_handle", "youtube_channel_id", "desde"):
         if not cfg.get(campo):
             erro(campo, "obrigatório")
+        if not isinstance(cfg[campo], str):
+            erro(campo, "deve ser um texto entre aspas")
+    for campo in ("titulo", "live", "series_por_prefixo"):
+        if campo in cfg and not isinstance(cfg[campo], dict):
+            erro(campo, "deve ser um objeto entre { }")
     cfg = {**DEFAULTS, **cfg}
     cfg["titulo"] = {**DEFAULTS["titulo"], **cfg["titulo"]}
     cfg["live"] = {**DEFAULTS["live"], **cfg["live"]}
+    if not isinstance(cfg["titulo"]["separador"], str) or not cfg["titulo"]["separador"].strip():
+        erro("titulo.separador", "o caractere entre as partes do título, ex. \"|\" ou \"-\"")
+    campos = cfg["titulo"]["campos"]
+    if not isinstance(campos, list) or "titulo" not in campos or not set(campos) <= CAMPOS:
+        erro("titulo.campos", "lista com \"titulo\" e, se houver, \"pregador\" e \"serie\", na ordem do título")
     if not cfg["youtube_handle"].startswith("@"):
         cfg["youtube_handle"] = "@" + cfg["youtube_handle"]
     if not re.fullmatch(r"UC[\w-]{22}", cfg["youtube_channel_id"]):

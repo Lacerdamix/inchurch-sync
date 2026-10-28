@@ -1,3 +1,4 @@
+import sys
 from sync import capa_mudou, descobrir_canal, parse, resumo
 
 S, V = "streams", "videos"
@@ -47,6 +48,15 @@ assert parse("A GRAÇA | BISPO JOÃO", V, cfg_bispo) == ("A GRAÇA", "BISPO JOÃ
 assert parse("A GRAÇA | PR. JOÃO", V, cfg_bispo) is None
 assert parse("A GRAÇA | PR. JOÃO", S, cfg_bispo) == ("A GRAÇA", "PR. JOÃO", None)
 assert descobrir_canal.__doc__
+# Revisão final: pregador primeiro + título sem separador não vira autor = título.
+assert parse("Noite de Louvor", S, cfg_hifen) == ("Noite de Louvor", "Igreja Y", None)
+assert parse("Noite de Louvor", V, cfg_hifen) is None
+# Campo "serie" do título vira série (só série por prefixo libera a aba Vídeos; música continua de fora).
+assert parse("A GRAÇA | PR. JOÃO | ROMANOS", V, cfg_bn) == ("A GRAÇA", "PR. JOÃO", "ROMANOS")
+assert parse("EM NOME DE JESUS | Ao Vivo | BN Music", V, cfg_bn) is None
+# Nome genérico com fronteira de palavra (como no original); entrada vazia não derruba tudo.
+assert parse("DOMINGOS DE VITÓRIA | PR. X", S, cfg_bn) == ("DOMINGOS DE VITÓRIA", "PR. X", None)
+assert parse("A GRAÇA | PR. X", S, {**cfg_bn, "cultos_genericos": ["", "CULTO"]}) == ("A GRAÇA", "PR. X", None)
 
 assert resumo("Bem-vindo à Boas Novas Church!\n\n\n🕊 Nossos cultos\n📍 Estoril", "fallback") == "fallback"
 assert resumo("Bem-vindo!\n\nChega de viver preso ao passado.\n\nResumo", "x") == "Chega de viver preso ao passado."
@@ -84,5 +94,38 @@ def falha(url):
 import urllib.error
 sync.pagina = falha
 assert not sync.em_breve("x")  # sem rede: publica como antes, não derruba a execução
+
+# O feed de uma aba sai do ar à toa (404): segue com a outra. As duas fora = canal errado.
+def rss_sem_lives(aba, cid):
+    if aba == "streams":
+        raise urllib.error.HTTPError("u", 404, "Not Found", {}, None)
+    return [{"id": "v1", "aba": aba}]
+sync.rss = rss_sem_lives
+assert sync.listar("UC" + "a" * 22) == [{"id": "v1", "aba": "videos"}]
+def rss_fora(aba, cid):
+    raise urllib.error.HTTPError("u", 404, "Not Found", {}, None)
+sync.rss = rss_fora
+try:
+    sync.listar("UC" + "a" * 22)
+    raise AssertionError("as duas abas fora deveriam parar com mensagem")
+except SystemExit as e:
+    assert "youtube_channel_id" in str(e), str(e)
+
+# Estreia agendada na aba Vídeos também espera (não só live).
+import contextlib, io, os
+sync.listar = lambda cid: [
+    {"id": "estreia", "title": "A GRAÇA | PR. JOÃO", "timestamp": 1_900_000_000, "description": "", "aba": "videos"},
+    {"id": "pronto", "title": "A FÉ | PR. JOÃO", "timestamp": 1_900_000_100, "description": "", "aba": "videos"}]
+sync.em_breve = lambda vid: vid == "estreia"
+sys.argv = ["sync.py", "--dry-run", "--config", os.path.join(os.path.dirname(os.path.abspath(__file__)), "igreja.exemplo.json")]
+os.environ.pop("INCHURCH_EMAIL", None)
+saida = io.StringIO()
+with contextlib.redirect_stdout(saida):
+    try:
+        sync.main()
+    except SystemExit as e:
+        assert not e.code, e.code
+assert "AGENDADA" in saida.getvalue() and "youtu.be/estreia" not in saida.getvalue(), saida.getvalue()
+assert "youtu.be/pronto" in saida.getvalue(), saida.getvalue()
 
 print("ok")

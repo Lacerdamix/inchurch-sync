@@ -25,8 +25,13 @@ Rode `python3 --version`, `git --version`, `gh --version` e `gh auth status`.
 - Falta `gh`: Mac `brew install gh` (sem Homebrew: baixar em https://cli.github.com), Windows `winget install --id GitHub.cli`.
 - `gh auth status` diz que não está logado: peça para a pessoa abrir o **Terminal** (Mac: Cmd+Espaço, digitar "Terminal"; Windows: menu Iniciar, "PowerShell") e rodar `gh auth login`, escolhendo GitHub.com, HTTPS e "Login with a web browser". Quem não tem conta no GitHub cria uma em https://github.com/signup antes.
 - Se `gh auth status` não listar o escopo `workflow`, peça para rodar no Terminal `gh auth refresh -s workflow`.
+- Rode `gh auth setup-git` (o git passa a usar o login do GitHub para enviar).
+- Se `git config --global user.name` vier vazio (máquina nova), configure com o login do GitHub, senão o primeiro commit falha:
+  `git config --global user.name "<login>"` e `git config --global user.email "<login>@users.noreply.github.com"`, com `<login>` de `gh api user -q .login`.
 
 Só siga quando os quatro comandos funcionarem.
+
+**Windows**: use `py` no lugar de `python3`, `$HOME` no lugar de `~`, e rode os comandos um por vez (o PowerShell do Windows não aceita `&&`).
 
 ### 2. Entrevista (uma pergunta por mensagem)
 
@@ -35,7 +40,7 @@ Só siga quando os quatro comandos funcionarem.
 3. **Como são os títulos**: baixe os títulos recentes você mesmo, sem perguntar:
    `curl -s "https://www.youtube.com/feeds/videos.xml?playlist_id=UULV<id sem o UC>"` (lives) e `...UULF<id sem o UC>` (vídeos). Mostre 5 a 10 títulos de cada e proponha:
    - `titulo.separador` (o caractere entre as partes, ex. `|` ou `-`);
-   - `titulo.campos`, a ordem das partes: `titulo`, `pregador`, `serie` (só as que existem);
+   - `titulo.campos`, a ordem das partes: `titulo` (sempre), `pregador` e `serie` (só as que existem). A parte `serie` vira o nome da série da Palavra;
    - `prefixos_pregador`, como escrevem quem prega (`PR`, `PRA`, `PASTOR`, `BISPO`, `AP`, ...);
    - `cultos_genericos`, os nomes que aparecem quando a live ainda não foi renomeada (`CULTO`, `DOMINGO`, `SANTA CEIA`, ...). Pergunte: "quando a live vai ao ar, antes de vocês mudarem o título, como ela se chama?";
    - `series_por_prefixo` só se houver um padrão claro tipo `CONF. NOME DO EVENTO` (ex. `{"CONF": "CONFERÊNCIA"}`); senão `{}`.
@@ -77,7 +82,7 @@ Espere a pessoa dizer que fez e confira com `gh secret list`. Só siga quando ap
 gh workflow run sync.yml -f dry_run=true
 ```
 
-Se disser que não achou o workflow, espere 10 segundos e tente de novo. Pegue o id com `gh run list --workflow sync.yml --limit 1 --json databaseId -q '.[0].databaseId'`, acompanhe com `gh run watch <id> --exit-status` e leia o resultado com `gh run view <id> --log`. Mostre à pessoa as linhas com data (o que seria publicado agora, já descontando o que está no app). Se o login falhar, a senha ou o e-mail estão errados: repita o passo da senha.
+Se disser que não achou o workflow, espere 10 segundos e tente de novo. A execução leva alguns segundos para aparecer: pegue o id com `gh run list --workflow sync.yml --limit 1 --json databaseId,createdAt,status` e só use se `createdAt` for depois do disparo e `status` não for `completed`; senão espere 5 segundos e repita (assim você não lê a execução anterior). Acompanhe com `gh run watch <id> --exit-status` e leia o resultado com `gh run view <id> --log`. Mostre à pessoa as linhas com data (o que seria publicado agora, já descontando o que está no app). Se o login falhar, a senha ou o e-mail estão errados: repita o passo da senha.
 
 Pergunte se pode publicar de verdade.
 
