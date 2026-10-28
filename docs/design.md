@@ -44,7 +44,7 @@ inchurch-sync/
   .claude-plugin/plugin.json          # nome inchurch-sync, versão, descrição
   .claude-plugin/marketplace.json     # para /plugin marketplace add Lacerdamix/inchurch-sync
   skills/instalar/SKILL.md            # a entrevista e a instalação (detalhe abaixo)
-  commands/instalar.md                # /inchurch-sync:instalar -> invoca a skill
+  .claude-plugin/icon.png             # símbolo da InChurch, para a listagem do plugin
   README.md                           # o que é, os dois comandos de instalação, aviso do Actions como paliativo, passo a passo manual
   sync.py                             # pregações -> Palavra (derivado do atual, lê igreja.json)
   live.py                             # push da live (derivado do atual, lê igreja.json)
@@ -100,7 +100,7 @@ Cada workflow faz `actions/checkout` do repo da igreja e um segundo `actions/che
 
 ## O que a skill faz (skills/instalar/SKILL.md)
 
-Gatilhos: "instalar", "configurar", "testar", "mudar horário", "atualizar", `/inchurch-sync:instalar`.
+Gatilhos: "instalar", "configurar", "testar", "mudar horário", "atualizar", `/inchurch-sync:instalar` (a skill do plugin já vira esse comando; não há `commands/`).
 
 1. Checa `python3` e `gh auth status`. Falta algo: explica como instalar (link oficial) e para.
 2. Entrevista, uma pergunta por vez, em linguagem de leigo: nome da igreja, link do canal, dias e horários dos cultos com transmissão, como ficam os títulos dos vídeos (pede dois ou três exemplos reais e deduz separador e ordem, confirmando), como escrevem o nome de quem prega ("Pr.", "Bispo", ...), nomes comuns de culto que não são tema, desde quando publicar, quantos destaques, e-mail do painel InChurch.
