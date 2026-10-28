@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "inchurch-sync",
+  "description": "Automações do YouTube para o app InChurch, em parceria com a InChurch.",
+  "owner": {
+    "name": "Lacerdamix",
+    "url": "https://github.com/Lacerdamix"
+  },
+  "plugins": [
+    {
+      "name": "inchurch-sync",
+      "description": "Publica as pregações do YouTube como Palavras e avisa quando a live começa, no app InChurch da sua igreja.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

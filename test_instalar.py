@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 
-from instalar import crons, gerar
+from instalar import crons, gerar, minutos_mes
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 EXEMPLO = os.path.join(AQUI, "igreja.exemplo.json")
@@ -14,6 +14,9 @@ assert crons([{"dias": [0, 3], "de": "19:00", "ate": "23:55"}]) == ["*/5 22-23 *
 assert crons([{"dias": [6], "de": "21:00", "ate": "23:30"}]) == ["*/5 0-2 * * 0"]       # sábado à noite = domingo UTC
 assert crons([{"dias": [4, 0], "de": "20:00", "ate": "20:30"}]) == ["*/5 23 * * 0,4"]
 assert crons([]) == []
+# Minutos do Actions por mês (cada execução conta 1 min): live a cada 5 min nas janelas + sync diário.
+assert minutos_mes(["*/5 12-15 * * 0", "*/5 22-23 * * 0,3", "*/5 0-2 * * 1,4"]) == 762
+assert minutos_mes([]) == 31
 
 d = tempfile.mkdtemp()
 gerar(EXEMPLO, d)

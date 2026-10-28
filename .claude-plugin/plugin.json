@@ -1,0 +1,13 @@
+{
+  "name": "inchurch-sync",
+  "version": "1.0.0",
+  "description": "Publica as pregações do YouTube como Palavras e avisa quando a live começa, no app InChurch da sua igreja.",
+  "author": {
+    "name": "Lacerdamix",
+    "url": "https://github.com/Lacerdamix"
+  },
+  "homepage": "https://github.com/Lacerdamix/inchurch-sync",
+  "repository": "https://github.com/Lacerdamix/inchurch-sync",
+  "license": "MIT",
+  "keywords": ["inchurch", "igreja", "youtube", "pregações", "live"]
+}

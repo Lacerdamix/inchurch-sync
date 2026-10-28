@@ -45,4 +45,6 @@ def carregar_igreja(path):
         for k in ("de", "ate"):
             if not HORA.match(str(j.get(k, ""))):
                 erro("live.janelas", f"{k} deve ser HH:MM (ex.: 19:00)")
+        if j["ate"] < j["de"]:
+            erro("live.janelas", f"{j['de']}–{j['ate']}: a janela não pode passar da meia-noite (use até 23:55)")
     return cfg

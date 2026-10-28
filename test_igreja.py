@@ -31,6 +31,8 @@ for ruim, campo in [
       "live": {"janelas": [{"dias": [0], "de": "9h", "ate": "12:00"}]}}, "live.janelas"),
     ({"nome": "X", "youtube_handle": "@X", "youtube_channel_id": UC, "desde": "2026-01-01",
       "live": {"janelas": [{"dias": [7], "de": "09:00", "ate": "12:00"}]}}, "live.janelas"),
+    ({"nome": "X", "youtube_handle": "@X", "youtube_channel_id": UC, "desde": "2026-01-01",
+      "live": {"janelas": [{"dias": [0], "de": "22:00", "ate": "01:00"}]}}, "live.janelas"),
 ]:
     try:
         carregar_igreja(grava(ruim))

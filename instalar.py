@@ -30,6 +30,17 @@ def crons(janelas):
     return linhas
 
 
+def minutos_mes(linhas):
+    """Estimativa de minutos do Actions por mês: cada execução conta 1 minuto (o GitHub arredonda para cima).
+    Live: 12 execuções por hora em cada linha de cron; sync: 1 por dia."""
+    por_semana = 0
+    for linha in linhas:
+        _, horas, _, _, dias = linha.split()
+        a, _, b = horas.partition("-")
+        por_semana += (int(b or a) - int(a) + 1) * 12 * len(dias.split(","))
+    return round(por_semana * 4.35) + 31
+
+
 def gerar(config_path, destino):
     cfg = carregar_igreja(config_path)  # valida antes de escrever qualquer coisa
     workflows = os.path.join(destino, ".github", "workflows")
@@ -55,3 +66,5 @@ if __name__ == "__main__":
         sys.exit(__doc__)
     gerar(sys.argv[1], sys.argv[2])
     print(f"Pronto: {os.path.abspath(sys.argv[2])}")
+    minutos = minutos_mes(crons(carregar_igreja(sys.argv[1])["live"]["janelas"]))
+    print(f"Estimativa: {minutos} minutos/mês do GitHub Actions (grátis até 2.000/mês em repositório privado)")
