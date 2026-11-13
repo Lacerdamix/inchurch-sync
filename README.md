@@ -18,24 +18,55 @@ Nada é publicado duas vezes: o próprio app é a referência do que já foi.
 ## O que você precisa
 
 - Um computador Mac ou Windows, só para a instalação (depois pode ficar desligado).
-- O [Claude Code](https://claude.com/claude-code) instalado.
-- Uma conta no [GitHub](https://github.com/signup), gratuita.
+- Um assistente instalado: o [Claude Code](https://claude.com/claude-code) ou o [Codex](https://developers.openai.com/codex). Qualquer um dos dois serve; cada um faz parte dos planos pagos da sua empresa (Claude ou ChatGPT).
+- Uma conta no [GitHub](https://github.com/signup), gratuita. Se não tiver, dá para criar durante a instalação.
 - O e-mail e a senha de quem acessa o painel da InChurch da igreja.
+
+Você não precisa saber programar nem instalar mais nada antes: o assistente instala o que faltar.
 
 ## Instalação
 
-Abra o Claude Code e digite:
+**1. Adicione o inchurch-sync ao seu assistente.** Cole as duas linhas, uma de cada vez, apertando Enter depois de cada uma.
+
+No **Claude Code**, dentro da conversa:
 
 ```
 /plugin marketplace add Lacerdamix/inchurch-sync
 /plugin install inchurch-sync
 ```
 
-Depois escreva **`instalar`**. O Claude conversa com você: pergunta o canal do YouTube, olha os títulos dos seus vídeos, pergunta os dias e horários dos cultos e o e-mail do painel. Ele monta tudo, mostra o que seria publicado e só publica depois do seu OK.
+No **Codex**, no Terminal (Mac: Cmd+Espaço e digite "Terminal"; Windows: menu Iniciar, "PowerShell"):
 
-A senha do painel você digita uma única vez, no Terminal do seu computador, quando o Claude pedir. Ela vai direto para o cofre do GitHub e não passa pela conversa.
+```
+codex plugin marketplace add Lacerdamix/inchurch-sync
+codex plugin add inchurch-sync@inchurch-sync
+```
 
-Para mudar algo depois, abra o Claude Code e peça **"mudar horário"**, **"configurar"** ou **"testar"**.
+Depois abra o Codex. Se o Terminal disser que não conhece o comando `codex` (acontece com quem só tem o aplicativo), pule as duas linhas e, no passo 2, cole esta frase na conversa em vez de `instalar`:
+
+```
+Baixe https://github.com/Lacerdamix/inchurch-sync, leia o arquivo skills/instalar/SKILL.md e siga as instruções para instalar na minha igreja.
+```
+
+**2. Escreva `instalar`** e aperte Enter. Daqui em diante o assistente conduz. Quando ele pedir permissão para executar algo, pode aceitar.
+
+**3. Entre no GitHub.** O assistente abre uma página do GitHub no seu navegador e mostra um código na conversa. Entre na sua conta (ou crie uma), digite o código e clique em **Authorize**.
+
+**4. Responda às perguntas.** O canal do YouTube, os dias e horários dos cultos e o e-mail do painel. O assistente olha os títulos dos seus vídeos sozinho e só confirma com você como eles são escritos.
+
+**5. Digite a senha do painel.** O assistente abre uma janela pronta, só para isso. Digite a senha e aperte Enter (as letras não aparecem enquanto você digita, é normal). Ela vai direto para o cofre do GitHub e não passa pela conversa.
+
+**6. Confira e dê o OK.** O assistente mostra o que seria publicado. Nada vai para o app antes do seu OK.
+
+Pronto. Não precisa fazer mais nada, e o computador pode ficar desligado.
+
+## Depois de instalado
+
+Para mudar ou conferir algo, abra o mesmo assistente e peça em português:
+
+- **"mudar horário"**, quando os dias ou horários dos cultos mudarem;
+- **"configurar"**, para ajustar qualquer outra resposta da instalação;
+- **"testar"**, para ver o que seria publicado agora, sem publicar.
 
 ## Importante: o GitHub Actions é um paliativo
 
@@ -44,44 +75,15 @@ A instalação usa o GitHub Actions, o agendador gratuito do GitHub, para não p
 - Para as **pregações**, isso quase não importa: se atrasar, a Palavra entra mais tarde no mesmo dia.
 - Para o **aviso de live**, o push pode chegar atrasado ou não chegar.
 
-Se a igreja quiser o aviso na hora, o caminho confiável é rodar os mesmos scripts num servidor próprio (VPS) com agendamento a cada 5 minutos.
+Se a igreja quiser o aviso na hora, o caminho confiável é rodar os mesmos scripts, com agendamento a cada 5 minutos, numa máquina que fique sempre ligada. Há duas opções:
+
+- **Um computador antigo** que a igreja já tenha, ligado na tomada e na internet o tempo todo. Não custa nada além da luz, mas se ele desligar ou a internet cair, o aviso para.
+- **Um servidor alugado (VPS)**, que fica num datacenter e custa uma mensalidade pequena. Não depende da luz nem da internet da igreja.
+
+Nos dois casos a configuração é feita à mão por alguém técnico; esta instalação não cuida disso.
 
 O plano gratuito do GitHub dá 2.000 minutos por mês em repositório privado. A instalação mostra a estimativa para os seus horários; uma igreja com três cultos por semana fica perto de 800.
 
-## Como funciona
+## Para quem é técnico
 
-A instalação cria um repositório privado no seu GitHub, `inchurch-sync-<sua-igreja>`, com apenas a configuração (`igreja.json`) e os dois agendamentos. A cada execução, o GitHub baixa o código deste repositório na versão `v1`, então correções chegam sozinhas, sem reinstalar.
-
-- **Pregações** (`sync.py`): uma vez por dia, lê as abas Vídeos e Ao vivo do canal. Da aba Ao vivo entra todo culto que já tem título de pregação. Da aba Vídeos só entra o que tem pregador ou série no título, para música e podcast ficarem de fora. Live agendada espera o culto acontecer.
-- **Live** (`live.py`): a cada 5 minutos nos horários de culto, confere se o canal está ao vivo e manda o push uma vez por live. Opcionalmente liga o canal "ao vivo" na home do app.
-
-## Configuração (`igreja.json`)
-
-A instalação preenche tudo. Para referência, veja [`igreja.exemplo.json`](igreja.exemplo.json).
-
-| Campo | O que é |
-|---|---|
-| `nome` | Nome da igreja. Vira o autor quando o título não diz quem pregou. |
-| `youtube_handle`, `youtube_channel_id` | O canal do YouTube (`@SuaIgreja` e o id que começa com `UC`). |
-| `desde` | Data a partir da qual as pregações são publicadas (`AAAA-MM-DD`). |
-| `destaques` | Quantas Palavras recentes ficam em destaque no app. `0` não mexe. |
-| `titulo` | Como os títulos são escritos: `separador` (ex. `\|`) e a ordem dos `campos` (`titulo` sempre; `pregador` e `serie` se houver). A parte `serie` vira a série da Palavra. |
-| `prefixos_pregador` | Como vocês escrevem quem prega: `PR`, `PRA`, `PASTOR`, `BISPO`... |
-| `cultos_genericos` | Nomes de live ainda não renomeada (`CULTO`, `DOMINGO`...). Essas não são publicadas. |
-| `series_por_prefixo` | Opcional. Ex.: `{"CONF": "CONFERÊNCIA"}` faz `\| CONF. JOVENS 2026` virar a série "CONFERÊNCIA JOVENS 2026". |
-| `live.janelas` | Dias (0 = domingo) e horários, em Brasília, em que o aviso de live fica ligado. |
-| `live.canal_inchurch` | Opcional. Número do canal da home do app que deve ficar "ao vivo" durante a live. |
-
-## Instalação sem o Claude Code
-
-1. Instale `python3`, `git` e o [GitHub CLI](https://cli.github.com), e rode `gh auth login`.
-2. Copie `igreja.exemplo.json` para uma pasta nova como `igreja.json` e preencha. Para achar o id do canal: `python3 sync.py --canal @SuaIgreja`.
-3. Confira o que seria publicado: `python3 sync.py --dry-run --config igreja.json`.
-4. Gere a pasta: `python3 instalar.py igreja.json <pasta>`.
-5. Na pasta: `git init`, `git add -A`, `git commit -m inicial`, `gh repo create inchurch-sync-<igreja> --private --source . --push`.
-6. Guarde o login: `gh secret set INCHURCH_EMAIL` e `gh secret set INCHURCH_PASSWORD`.
-7. Teste: `gh workflow run sync.yml -f dry_run=true` e veja com `gh run list`.
-
-## Desenvolvimento
-
-Só Python 3 com a biblioteca padrão. Testes: `for t in test_*.py; do python3 "$t"; done`.
+Como funciona por dentro, os campos do `igreja.json`, a instalação manual sem agente e os testes estão em [docs/avancado.md](docs/avancado.md).

@@ -20,7 +20,7 @@ Entregar a outras igrejas que usam o app InChurch duas automações que já roda
 - Garantir pontualidade no Actions. README e skill dizem, com todas as letras, que o GitHub Actions é paliativo: o cron atrasa horas e às vezes não dispara. A VPS é o caminho confiável e fica como "próximo passo", sem código no repo.
 - Documentar a API de admin da InChurch (inradar) como se fosse pública. A parceria com a InChurch cobre o uso; o README não precisa escondê-la, mas também não a promove.
 - Retroativo (yt-dlp). Fora. A data de corte resolve o começo.
-- Funcionar em outros agentes além do Claude Code (o formato plugin é do Claude Code; o README traz o passo a passo manual para quem não usa agente).
+- Funcionar em agentes além do Claude Code e do Codex. Revisto em 2026-11-10: o Codex instala este mesmo repositório como plugin (lê `.claude-plugin/` e a mesma skill), então os dois são suportados; o passo a passo manual para quem não usa agente está em `docs/avancado.md`.
 
 ## Anti-objetivos (fracasso mesmo funcionando)
 

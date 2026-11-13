@@ -8,4 +8,4 @@ O código vem de [Lacerdamix/inchurch-sync](https://github.com/Lacerdamix/inchur
 
 O GitHub Actions é um paliativo: o agendamento costuma atrasar e às vezes não dispara.
 Para rodar na hora: `gh workflow run sync.yml` ou `gh workflow run live.yml`. Para ver o que aconteceu: `gh run list`.
-Para mudar horários ou o padrão dos títulos, abra o Claude Code nesta pasta e peça "mudar horário" ou "configurar".
+Para mudar horários ou o padrão dos títulos, abra o Claude Code ou o Codex nesta pasta e peça "mudar horário" ou "configurar".

@@ -5,9 +5,11 @@ description: Use quando o usuário pedir para instalar, configurar, testar, muda
 
 # inchurch-sync: instalação guiada
 
-Quem fala com você é, quase sempre, alguém da equipe de mídia ou secretaria de uma igreja, sem experiência com programação. Fale português simples, uma pergunta por vez, sem jargão (diga "repositório no GitHub" no máximo uma vez e explique; nunca diga "cron", "secret", "YAML", "workflow" sem traduzir). Você executa os comandos; a pessoa só responde e, em dois momentos, digita algo no Terminal dela.
+Quem fala com você é, quase sempre, alguém da equipe de mídia ou secretaria de uma igreja, sem experiência com programação. Fale português simples, uma pergunta por vez, sem jargão (diga "repositório no GitHub" no máximo uma vez e explique; nunca diga "cron", "secret", "YAML", "workflow" sem traduzir). Você executa e instala tudo; a pessoa só responde, autoriza o GitHub no navegador e digita a senha numa janela que você abre. Não peça para ela abrir o Terminal, a não ser nos casos de reserva indicados abaixo.
 
-**Pasta do plugin (`PLUGIN`)**: `${CLAUDE_PLUGIN_ROOT}`. Se essa variável não estiver preenchida, é a pasta dois níveis acima do diretório base desta skill (onde ficam `sync.py`, `live.py`, `instalar.py`). Use o caminho absoluto, entre aspas.
+**Pasta do plugin (`PLUGIN`)**: `${CLAUDE_PLUGIN_ROOT}`. Se essa variável não estiver preenchida (é o caso do Codex e de outros agentes, que leem este arquivo de uma cópia baixada do repositório), é a pasta dois níveis acima deste arquivo (onde ficam `sync.py`, `live.py`, `instalar.py`). Use o caminho absoluto, entre aspas.
+
+**Claude Code ou Codex**: esta skill vale para os dois. Quase todos os comandos precisam de internet (`gh`, `git push`, `curl`) e a pasta da igreja fica fora da pasta atual (`~/inchurch-sync-<slug>`). Se o seu ambiente bloquear rede ou escrita fora da pasta (sandbox), peça a aprovação e diga à pessoa, em uma frase, que pode aceitar.
 
 **Regra de ouro sobre a senha**: a senha do painel InChurch nunca é digitada nesta conversa nem gravada em arquivo. Se a pessoa colar a senha aqui, avise que ela deve trocá-la no painel depois, e siga sem usá-la.
 
@@ -21,10 +23,11 @@ Escolha o fluxo pelo pedido: **instalar** (padrão), **testar**, **configurar / 
 
 Rode `python3 --version`, `git --version`, `gh --version` e `gh auth status`.
 
-- Falta `python3` ou `git` no Mac: peça para rodar `xcode-select --install` no Terminal. No Windows: `winget install Python.Python.3.12 Git.Git`.
-- Falta `gh`: Mac `brew install gh` (sem Homebrew: baixar em https://cli.github.com), Windows `winget install --id GitHub.cli`.
-- `gh auth status` diz que não está logado: peça para a pessoa abrir o **Terminal** (Mac: Cmd+Espaço, digitar "Terminal"; Windows: menu Iniciar, "PowerShell") e rodar `gh auth login`, escolhendo GitHub.com, HTTPS e "Login with a web browser". Quem não tem conta no GitHub cria uma em https://github.com/signup antes.
-- Se `gh auth status` não listar o escopo `workflow`, peça para rodar no Terminal `gh auth refresh -s workflow`.
+- Falta `python3` ou `git` no Mac: rode você mesmo `xcode-select --install`. Abre uma janela do macOS; peça para a pessoa clicar em "Instalar" e avisar quando terminar. No Windows: `winget install -e --id Python.Python.3.12 --accept-source-agreements --accept-package-agreements` (e o mesmo com `Git.Git`).
+- Falta `gh`: Mac com Homebrew, `brew install gh`. Mac sem Homebrew: baixe você mesmo o instalador `.pkg` "macOS universal" da última versão (https://github.com/cli/cli/releases/latest) para `~/Downloads` e abra com `open`; a pessoa só clica em Continuar/Instalar e digita a senha do computador. Windows: `winget install -e --id GitHub.cli --accept-source-agreements --accept-package-agreements`.
+- Instalou e o comando continua "não encontrado": peça para fechar e abrir o aplicativo e escrever `instalar` de novo (o programa novo só aparece depois de reabrir).
+- `gh auth status` diz que não está logado, ou não lista o escopo `workflow`: faça o login você mesmo. Rode **em segundo plano** (o comando fica esperando a pessoa autorizar; você precisa ler a saída sem esperar ele terminar) `gh auth login --hostname github.com --git-protocol https --web --scopes workflow` e leia a saída: ela traz um código no formato `XXXX-XXXX` e o endereço https://github.com/login/device. Abra o endereço no navegador da pessoa (Mac: `open <endereço>`; Windows: `start <endereço>`) e diga: "Abri uma página do GitHub no seu navegador. Entre na sua conta (se não tiver, crie uma ali mesmo, é grátis), digite o código **XXXX-XXXX** e clique em Authorize. Me avise quando terminar." O comando termina sozinho quando ela autoriza; confirme com `gh auth status`. Se o código expirar (15 minutos), rode de novo e passe o código novo.
+  - Reserva, se o login acima não funcionar: peça para a pessoa abrir o **Terminal** (Mac: Cmd+Espaço, digitar "Terminal"; Windows: menu Iniciar, "PowerShell") e rodar `gh auth login -s workflow`, escolhendo GitHub.com, HTTPS e "Login with a web browser".
 - Rode `gh auth setup-git` (o git passa a usar o login do GitHub para enviar).
 - Se `git config --global user.name` vier vazio (máquina nova), configure com o login do GitHub, senão o primeiro commit falha:
   `git config --global user.name "<login>"` e `git config --global user.email "<login>@users.noreply.github.com"`, com `<login>` de `gh api user -q .login`.
@@ -68,11 +71,20 @@ gh repo create inchurch-sync-<slug> --private --source . --push
 gh secret set INCHURCH_EMAIL --body "<email>"
 ```
 
-Agora a senha. Mostre o comando abaixo (com o `<dono>` preenchido; descubra com `gh api user -q .login`) e peça para a pessoa colar **no Terminal**, apertar Enter e digitar a senha do painel quando ele pedir (os caracteres não aparecem enquanto digita, é normal):
+Agora a senha. O comando é este (com o `<dono>` preenchido; descubra com `gh api user -q .login`):
 
 ```
 gh secret set INCHURCH_PASSWORD --repo <dono>/inchurch-sync-<slug>
 ```
+
+Abra você mesmo uma janela do Terminal já com ele rodando, para a pessoa só digitar a senha:
+
+- Mac: `osascript -e 'tell application "Terminal" to do script "<comando>"' -e 'tell application "Terminal" to activate'`. Se o macOS perguntar se o aplicativo pode controlar o Terminal, peça para clicar em OK.
+- Windows: `Start-Process powershell -ArgumentList '-NoExit','-Command','<comando>'`.
+
+Diga: "Abri uma janela que está pedindo a senha (`Paste your secret`). Digite a senha do painel InChurch e aperte Enter. As letras não aparecem enquanto você digita, é normal. Depois pode fechar a janela e me avisar."
+
+Reserva, se a janela não abrir: mostre o comando e peça para a pessoa abrir o Terminal (Mac: Cmd+Espaço, digitar "Terminal"; Windows: menu Iniciar, "PowerShell"), colar, apertar Enter e digitar a senha.
 
 Espere a pessoa dizer que fez e confira com `gh secret list`. Só siga quando aparecerem `INCHURCH_EMAIL` e `INCHURCH_PASSWORD`.
 
@@ -95,9 +107,8 @@ Pergunte se pode publicar de verdade.
 Diga, em poucas linhas:
 - As pregações novas entram todo dia por volta das 8h; a Palavra mais nova gera uma notificação.
 - Nos horários de culto, a cada 5 minutos o GitHub confere se a live começou e manda "🔴 Estamos ao vivo!".
-- **O GitHub Actions é um paliativo**: o agendamento costuma atrasar (às vezes horas) e de vez em quando não dispara. Para o aviso da live chegar na hora, o caminho confiável é rodar num servidor próprio (VPS); fale com quem instalou se quiser isso.
-- Para conferir: `gh run list` na pasta, ou a aba Actions do repositório no GitHub.
-- Para mudar algo depois: abrir o Claude Code e pedir "mudar horário", "configurar" ou "testar".
+- **O GitHub Actions é um paliativo**: o agendamento costuma atrasar (às vezes horas) e de vez em quando não dispara. Para o aviso da live chegar na hora, o caminho confiável é rodar numa máquina sempre ligada: um computador antigo da igreja, que fique ligado e na internet o tempo todo, ou um servidor alugado (VPS). Isso é configurado à parte, por alguém técnico; fale com quem instalou se quiser isso.
+- Para conferir ou mudar algo depois: abrir de novo o aplicativo que ela usou agora (Claude Code ou Codex) e pedir "testar", "mudar horário" ou "configurar". Quem quiser ver por conta própria: a aba Actions do repositório no GitHub.
 
 ---
 
@@ -118,4 +129,4 @@ python3 "PLUGIN/instalar.py" igreja.json .
 git add -A && git commit -qm "inchurch-sync: atualiza configuração" && git push
 ```
 
-Se `git commit` disser que não há nada para commitar, já estava atualizado. Correções do código chegam sozinhas (o GitHub baixa a versão `v1` a cada execução); isto só é preciso quando a configuração ou os agendamentos mudam, ou depois de `/plugin update`.
+Se `git commit` disser que não há nada para commitar, já estava atualizado. Correções do código chegam sozinhas (o GitHub baixa a versão `v1` a cada execução); isto só é preciso quando a configuração ou os agendamentos mudam, ou depois de atualizar o plugin (Claude Code: `/plugin update`; Codex: `codex plugin marketplace upgrade`).
