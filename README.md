@@ -42,11 +42,9 @@ codex plugin marketplace add Lacerdamix/inchurch-sync
 codex plugin add inchurch-sync@inchurch-sync
 ```
 
-Depois abra o Codex. Se o Terminal disser que não conhece o comando `codex` (acontece com quem só tem o aplicativo), pule as duas linhas e, no passo 2, cole esta frase na conversa em vez de `instalar`:
+Depois abra o Codex.
 
-```
-Baixe https://github.com/Lacerdamix/inchurch-sync, leia o arquivo skills/instalar/SKILL.md e siga as instruções para instalar na minha igreja.
-```
+**Atalho, sem instalar o plugin:** baixe o arquivo [INSTALAR.md](https://raw.githubusercontent.com/Lacerdamix/inchurch-sync/main/INSTALAR.md) (no navegador, Cmd+S ou Ctrl+S) e envie-o na conversa do Claude Code ou do Codex. O assistente começa sozinho; pule para o passo 3.
 
 **2. Escreva `instalar`** e aperte Enter. Daqui em diante o assistente conduz. Quando ele pedir permissão para executar algo, pode aceitar.
 

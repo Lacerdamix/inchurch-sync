@@ -43,7 +43,8 @@ Entregar a outras igrejas que usam o app InChurch duas automações que já roda
 inchurch-sync/
   .claude-plugin/plugin.json          # nome inchurch-sync, versão, descrição
   .claude-plugin/marketplace.json     # para /plugin marketplace add Lacerdamix/inchurch-sync
-  skills/instalar/SKILL.md            # a entrevista e a instalação (detalhe abaixo)
+  INSTALAR.md                         # o roteiro completo para o agente; basta enviar este arquivo ao Claude/Codex (detalhe abaixo)
+  skills/instalar/SKILL.md            # skill do plugin: só aponta para INSTALAR.md
   .claude-plugin/icon.png             # símbolo da InChurch, para a listagem do plugin
   README.md                           # o que é, os dois comandos de instalação, aviso do Actions como paliativo, passo a passo manual
   sync.py                             # pregações -> Palavra (derivado do atual, lê igreja.json)
@@ -98,7 +99,7 @@ Cada workflow faz `actions/checkout` do repo da igreja e um segundo `actions/che
 - `live.canal_inchurch`: id do canal InChurch para ligar o "ao vivo agora" na home. Opcional; `null` pula o PATCH.
 - `live.janelas`: viram as linhas `cron` do `live.yml` (a skill converte BRT para UTC). Dias: 0 = domingo, como no cron.
 
-## O que a skill faz (skills/instalar/SKILL.md)
+## O que o roteiro faz (INSTALAR.md, usado também pela skill do plugin)
 
 Gatilhos: "instalar", "configurar", "testar", "mudar horário", "atualizar", `/inchurch-sync:instalar` (a skill do plugin já vira esse comando; não há `commands/`).
 
